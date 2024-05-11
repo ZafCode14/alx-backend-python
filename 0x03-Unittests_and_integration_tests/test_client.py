@@ -74,46 +74,42 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
 
-@parameterized_class((
-    'org_payload', 'repos_payload',
-    'expected_repos', 'apache2_repos'), TEST_PAYLOAD)
+@parameterized_class(
+    ("org_payload", "repos_payload", "expected_repos", "apache2_repos"),
+    TEST_PAYLOAD
+)
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """Class with test methods"""
+
     @classmethod
     def setUpClass(cls):
-        """Method that sets up the class"""
-        cls.get_patcher = patch('requests.get')
-        cls.mock_get = cls.get_patcher.start()
-        cls.mock_get.side_effect = cls.mock_response
+        """Method that sets up a class"""
+        config = {'return_value.json.side_effect':
+                  [
+                      cls.org_payload, cls.repos_payload,
+                      cls.org_payload, cls.repos_payload
+                  ]
+                  }
+        cls.get_patcher = patch('requests.get', **config)
+
+        cls.mock = cls.get_patcher.start()
 
     @classmethod
     def tearDownClass(cls):
-        """Method that tears down the class"""
+        """Method that tears down a class"""
         cls.get_patcher.stop()
 
-    @staticmethod
-    def mock_response(url):
-        """Method that mock the response"""
-        if url == 'https://api.github.com/orgs/google':
-            return MockResponse(
-                    200, TestIntegrationGithubOrgClient.org_payload)
-        elif url == 'https://api.github.com/orgs/google/repos':
-            return MockResponse(
-                    200, TestIntegrationGithubOrgClient.repos_payload)
-        else:
-            return MockResponse(404, {})
+    def test_public_repos(self):
+        """Method that tests public repos"""
+        client = GithubOrgClient('google')
+        repos = client.public_repos()
+        self.assertEqual(repos, self.expected_repos)
 
-
-class MockResponse:
-    """Class with methods"""
-    def __init__(self, status_code, json_data):
-        """Method that initializes the class"""
-        self.status_code = status_code
-        self.json_data = json_data
-
-    def json(self):
-        """Method that returns json_data"""
-        return self.json_data
+    def test_public_repos_with_license(self):
+        """Method that tests public repos with licesnse"""
+        client = GithubOrgClient('google')
+        repos = client.public_repos(license="apache-2.0")
+        self.assertEqual(repos, self.apache2_repos)
 
 
 if __name__ == '__main__':
