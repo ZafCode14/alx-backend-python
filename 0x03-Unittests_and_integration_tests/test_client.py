@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """Module with a unittest python script"""
 from client import GithubOrgClient
 from parameterized import parameterized, parameterized_class

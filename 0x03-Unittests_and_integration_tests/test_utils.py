@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """Module with a pyton unittest"""
 from utils import access_nested_map, get_json, memoize
 import unittest
